@@ -1,14 +1,8 @@
 {
     "subject": "Further Mathematics",
-    "qualification": "A Level",
     "categories": {
         "topicals": [],
-        "notes": [
-    {
-        "name": "Test Physics Resource",
-        "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-    }
-],
+        "notes": [],
         "youtubers": [],
         "textbooks": []
     }

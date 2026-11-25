@@ -1,80 +1,118 @@
+
 import discord
 
 from views.categories import CategoryView
 
 
+SUBJECTS = {
+    "a_level": {
+        "Mathematics": "mathematics",
+        "Further Mathematics": "further_maths",
+        "Physics": "physics",
+        "Chemistry": "chemistry",
+        "Biology": "biology",
+        "Computer Science": "computer_science"
+    },
+
+    "igcse": {
+        "Mathematics": "mathematics",
+        "Additional Mathematics": "additional_maths",
+        "Physics": "physics",
+        "Chemistry": "chemistry",
+        "Biology": "biology",
+        "Computer Science": "computer_science",
+        "English": "english",
+        "Urdu": "urdu",
+        "Pak Studies": "pak_studies",
+        "Islamiat": "islamiat"
+    },
+
+    "o_level": {
+        "Mathematics": "mathematics",
+        "Additional Mathematics": "additional_maths",
+        "Physics": "physics",
+        "Chemistry": "chemistry",
+        "Biology": "biology",
+        "Computer Science": "computer_science",
+        "English": "english",
+        "Urdu": "urdu",
+        "Pak Studies": "pak_studies",
+        "Islamiat": "islamiat"
+    }
+}
+
+
 class SubjectView(discord.ui.View):
 
-    def __init__(self):
+    def __init__(self, qualification):
         super().__init__(timeout=180)
 
-    @discord.ui.button(
-        label="Further Mathematics",
-        style=discord.ButtonStyle.primary
-    )
-    async def further_maths(
-        self,
-        interaction: discord.Interaction,
-        button: discord.ui.Button
-    ):
-        embed = discord.Embed(
-            title="Further Mathematics Resources",
-            description="Select a resource category.",
-            color=discord.Color.blurple()
-        )
+        self.qualification = qualification
 
-        await interaction.response.edit_message(
-            embed=embed,
-            view=CategoryView(
-                "a_level",
-                "further_maths",
-                "Further Mathematics"
+        options = [
+            discord.SelectOption(
+                label=subject_name,
+                value=subject_key
             )
+            for subject_name, subject_key
+            in SUBJECTS[qualification].items()
+        ]
+
+        select = discord.ui.Select(
+            placeholder="Choose a subject...",
+            options=options,
+            min_values=1,
+            max_values=1
         )
 
-    @discord.ui.button(
-        label="Physics",
-        style=discord.ButtonStyle.primary
-    )
-    async def physics(
-        self,
-        interaction: discord.Interaction,
-        button: discord.ui.Button
-    ):
-        embed = discord.Embed(
-            title="Physics Resources",
-            description="Select a resource category.",
-            color=discord.Color.blurple()
-        )
+        async def select_callback(interaction):
 
-        await interaction.response.edit_message(
-            embed=embed,
-            view=CategoryView(
-                "a_level",
-                "physics",
-                "Physics"
+            subject_key = select.values[0]
+
+            subject_name = next(
+                name
+                for name, key in SUBJECTS[qualification].items()
+                if key == subject_key
             )
+
+            embed = discord.Embed(
+                title=f"{subject_name} Resources",
+                description="Select a resource category.",
+                color=discord.Color.blurple()
+            )
+
+            await interaction.response.edit_message(
+                embed=embed,
+                view=CategoryView(
+                    qualification,
+                    subject_key,
+                    subject_name
+                )
+            )
+
+        select.callback = select_callback
+        self.add_item(select)
+
+        back_button = discord.ui.Button(
+            label="Back",
+            style=discord.ButtonStyle.secondary
         )
 
-    @discord.ui.button(
-        label="Back",
-        style=discord.ButtonStyle.secondary,
-        row=1
-    )
-    async def back(
-        self,
-        interaction: discord.Interaction,
-        button: discord.ui.Button
-    ):
-        from views.qualification import QualificationView
+        async def back_callback(interaction):
 
-        embed = discord.Embed(
-            title="Resource Archive",
-            description="Select your qualification.",
-            color=discord.Color.blurple()
-        )
+            from views.qualification import QualificationView
 
-        await interaction.response.edit_message(
-            embed=embed,
-            view=QualificationView()
-        )
+            embed = discord.Embed(
+                title="Resource Archive",
+                description="Select your qualification.",
+                color=discord.Color.blurple()
+            )
+
+            await interaction.response.edit_message(
+                embed=embed,
+                view=QualificationView()
+            )
+
+        back_button.callback = back_callback
+        self.add_item(back_button)
+

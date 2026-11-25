@@ -1,7 +1,16 @@
+
 import discord
 
 from services.resource_loader import get_category
 from services.resource_embed import build_resource_embed
+
+
+CATEGORIES = {
+    "Topicals": "topicals",
+    "Notes": "notes",
+    "YouTubers": "youtubers",
+    "Textbooks": "textbooks"
+}
 
 
 class CategoryView(discord.ui.View):
@@ -13,69 +22,72 @@ class CategoryView(discord.ui.View):
         self.subject = subject
         self.subject_name = subject_name
 
-    async def show_resources(self, interaction, category):
+        options = [
+            discord.SelectOption(
+                label=category_name,
+                value=category_key
+            )
+            for category_name, category_key in CATEGORIES.items()
+        ]
 
-        resources = get_category(
-            self.qualification,
-            self.subject,
-            category
+        select = discord.ui.Select(
+            placeholder="Choose a resource category...",
+            options=options,
+            min_values=1,
+            max_values=1
         )
 
-        embed = build_resource_embed(
-            self.subject_name,
-            category,
-            resources
+        async def select_callback(interaction):
+
+            category = select.values[0]
+
+            resources = get_category(
+                self.qualification,
+                self.subject,
+                category
+            )
+
+            embed = build_resource_embed(
+                self.subject_name,
+                category,
+                resources
+            )
+
+            await interaction.response.edit_message(
+                embed=embed,
+                view=self
+            )
+
+        select.callback = select_callback
+        self.add_item(select)
+
+        back_button = discord.ui.Button(
+            label="Back",
+            style=discord.ButtonStyle.secondary
         )
 
-        await interaction.response.edit_message(
-            embed=embed,
-            view=self
-        )
+        async def back_callback(interaction):
 
-    @discord.ui.button(
-        label="Topicals",
-        style=discord.ButtonStyle.primary
-    )
-    async def topicals(self, interaction, button):
-        await self.show_resources(interaction, "topicals")
+            from views.subjects import SubjectView
 
-    @discord.ui.button(
-        label="Notes",
-        style=discord.ButtonStyle.primary
-    )
-    async def notes(self, interaction, button):
-        await self.show_resources(interaction, "notes")
+            names = {
+                "a_level": "A Level",
+                "igcse": "IGCSE",
+                "o_level": "O Level"
+            }
 
-    @discord.ui.button(
-        label="YouTubers",
-        style=discord.ButtonStyle.primary
-    )
-    async def youtubers(self, interaction, button):
-        await self.show_resources(interaction, "youtubers")
+            qualification_name = names[self.qualification]
 
-    @discord.ui.button(
-        label="Textbooks",
-        style=discord.ButtonStyle.primary
-    )
-    async def textbooks(self, interaction, button):
-        await self.show_resources(interaction, "textbooks")
+            embed = discord.Embed(
+                title=f"{qualification_name} Resources",
+                description="Select a subject to continue.",
+                color=discord.Color.blurple()
+            )
 
-    @discord.ui.button(
-        label="Back",
-        style=discord.ButtonStyle.secondary,
-        row=1
-    )
-    async def back(self, interaction, button):
+            await interaction.response.edit_message(
+                embed=embed,
+                view=SubjectView(self.qualification)
+            )
 
-        from views.subjects import SubjectView
-
-        embed = discord.Embed(
-            title="A Level Resources",
-            description="Select a subject to continue.",
-            color=discord.Color.blurple()
-        )
-
-        await interaction.response.edit_message(
-            embed=embed,
-            view=SubjectView()
-        )
+        back_button.callback = back_callback
+        self.add_item(back_button)

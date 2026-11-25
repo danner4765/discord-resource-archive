@@ -1,9 +1,13 @@
 {
     "subject": "Physics",
-    "qualification": "A Level",
     "categories": {
         "topicals": [],
-        "notes": [],
+        "notes": [
+            {
+                "name": "Test Physics Notes",
+                "url": "https://example.com/physics-notes?utm_source=chatgpt.com"
+            }
+        ],
         "youtubers": [],
         "textbooks": []
     }
